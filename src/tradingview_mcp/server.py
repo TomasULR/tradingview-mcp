@@ -14,6 +14,8 @@ from tradingview_mcp.core.services.indicators import (
 )
 from tradingview_mcp.core.services.coinlist import load_symbols
 from tradingview_mcp.core.utils.validators import sanitize_timeframe, sanitize_exchange, EXCHANGE_SCREENER, ALLOWED_TIMEFRAMES, STOCK_EXCHANGES, is_stock_exchange, get_market_type
+from tradingview_mcp.core.services.sentiment_service import analyze_sentiment
+from tradingview_mcp.core.services.news_service import fetch_news_summary
 
 try:
     from tradingview_ta import TA_Handler, get_multiple_analysis
@@ -2883,6 +2885,80 @@ def _safe_round(value, decimals: int = 4):
     except (TypeError, ValueError):
         return None
 
+@mcp.tool()
+def market_sentiment(symbol: str, category: str = "all", limit: int = 20) -> dict:
+    """Real-time Reddit sentiment analysis for stocks and crypto.
+    
+    Args:
+        symbol: Asset symbol ("AAPL", "BTC", "ETH", "TSLA")
+        category: Subreddit group to search ("crypto", "stocks", "all")
+        limit: Number of posts to analyze
+    """
+    return analyze_sentiment(symbol, category, limit)
+
+
+@mcp.tool()
+def financial_news(symbol: str = None, category: str = "stocks", limit: int = 10) -> dict:
+    """Real-time financial news from RSS feeds (Reuters, CoinDesk, etc.)
+    
+    Args:
+        symbol: Optional symbol filter ("AAPL", "BTC"). None = all news.
+        category: Feed category ("crypto", "stocks", "all")
+        limit: Max number of news items
+    """
+    return fetch_news_summary(symbol, category, limit)
+
+
+@mcp.tool()
+def combined_analysis(symbol: str, exchange: str = "NASDAQ", timeframe: str = "1D") -> dict:
+    """POWER TOOL: TradingView technical analysis + Reddit sentiment + Financial news.
+    Confluence analysis of all signals for a complete market picture.
+    
+    Args:
+        symbol: Asset symbol ("AAPL", "BTCUSDT", "THYAO")
+        exchange: Exchange (NASDAQ, NYSE, BINANCE, KUCOIN, BIST, EGX)
+        timeframe: Analysis timeframe (5m, 15m, 1h, 4h, 1D, 1W)
+    """
+    # Technical analysis 
+    tech = coin_analysis(symbol, exchange, timeframe)
+    
+    # Reddit sentiment
+    cat = "crypto" if exchange.upper() in ["BINANCE", "KUCOIN", "BYBIT"] else "stocks"
+    sentiment = analyze_sentiment(symbol, category=cat)
+    
+    # News
+    news = fetch_news_summary(symbol, category=cat, limit=5)
+    
+    # Confluence
+    tech_momentum = tech.get("market_sentiment", {}).get("momentum", "") if isinstance(tech, dict) else ""
+    tech_bullish = tech_momentum == "Bullish"
+    sent_bullish = sentiment.get("sentiment_score", 0) > 0.1
+    signals_agree = tech_bullish == sent_bullish
+    
+    confidence = "HIGH" if signals_agree else "MIXED"
+    tech_signal = tech.get("market_sentiment", {}).get("buy_sell_signal", "N/A") if isinstance(tech, dict) else "N/A"
+    
+    return {
+        "symbol": symbol,
+        "exchange": exchange,
+        "timeframe": timeframe,
+        "technical": tech,
+        "sentiment": sentiment,
+        "news": {
+            "count": news.get("count", 0),
+            "latest": news.get("items", [])[:3],
+        },
+        "confluence": {
+            "signals_agree": signals_agree,
+            "confidence": confidence,
+            "recommendation": (
+                f"Technical {tech_signal} "
+                f"{'confirmed by' if signals_agree else 'conflicts with'} "
+                f"{sentiment.get('sentiment_label', 'Neutral')} Reddit sentiment "
+                f"({sentiment.get('posts_analyzed', 0)} posts analyzed)"
+            ),
+        },
+    }
 
 if __name__ == "__main__":
 	main()

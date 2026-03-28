@@ -2,10 +2,16 @@
 
 A powerful, multi-agent Model Context Protocol (MCP) server that transforms Claude (or any MCP client) into an autonomous financial analysis firm. By deploying specialized AI agents—Technical Analyst, Sentiment Analyst, and Risk Manager—the framework collaboratively evaluates real-time market conditions and delivers consensus-driven trading decisions.
 
+**Now with real-time Reddit sentiment analysis + live financial news integration.**
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![MCP Ready](https://img.shields.io/badge/MCP-Ready-brightgreen)](https://modelcontextprotocol.com/)
-[![Version](https://img.shields.io/badge/version-v0.3.0-blue)](https://github.com/atilaahmettaner/tradingview-mcp/releases)
+[![Version](https://img.shields.io/badge/version-v0.5.0-blue)](https://github.com/atilaahmettaner/tradingview-mcp/releases)
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-❤️-pink?logo=github-sponsors)](https://github.com/sponsors/atilaahmettaner)
+[![PyPI](https://img.shields.io/badge/PyPI-tradingview--mcp--server-orange)](https://pypi.org/project/tradingview-mcp-server/)
+
+> **⭐ If this tool improves your workflow, please star the repo and consider [sponsoring](https://github.com/sponsors/atilaahmettaner) — it helps keep the project maintained and growing!**
 
 ---
 
@@ -119,6 +125,13 @@ pip install tradingview-mcp-server
 |------|-------------|---------------|
 | `multi_agent_analysis` | Runs the full 3-agent debate for a final trading decision | "Run a multi-agent analysis on BTC on Binance" |
 | `coin_analysis` | Raw deep-dive for manual technical analysis | "Analyze IBM stock on NYSE with technical indicators" |
+| `combined_analysis` | **NEW** ⚡ Technical + Reddit Sentiment + Live News confluence | "Full analysis on AAPL with news and sentiment" |
+
+### 📡 Sentiment & News *(New in v0.5.0)*
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `market_sentiment` | Real-time Reddit sentiment across r/wallstreetbets, r/stocks, r/CryptoCurrency | "What's Reddit saying about ETH right now?" |
+| `financial_news` | Live headlines from Reuters, CoinDesk, CoinTelegraph via RSS | "Get the latest crypto news" |
 
 ### 📈 Real-Time Market Screening
 | Tool | Description | Example Usage |
@@ -127,12 +140,21 @@ pip install tradingview-mcp-server
 | `top_losers` | Find biggest declining assets | "Worst performing stocks today" |
 | `bollinger_scan` | Find assets with tight Bollinger Bands (breakout prep) | "Coins ready for breakout" |
 | `rating_filter` | Filter by Bollinger Band rating (-3 to +3) | "Strong buy signals (rating +2)" |
+| `volume_breakout_scanner` | Detect unusual volume with price confirmation | "Volume breakout on NASDAQ" |
 
 ### 🕯️ Pattern Recognition  
 | Tool | Description | Example Usage |
 |------|-------------|---------------|
 | `consecutive_candles_scan` | Find consecutive bullish/bearish patterns | "Scan for 3+ consecutive green candles" |
 | `advanced_candle_pattern` | Multi-timeframe pattern analysis | "Complex pattern detection" |
+
+### 🇪🇬 Egyptian Exchange (EGX)
+| Tool | Description |
+|------|-------------|
+| `egx_market_overview` | Full market breadth, top movers, sector summary |
+| `egx_sector_scan` | Analyze all 18 EGX sectors |
+| `egx_index_analysis` | EGX30 / EGX70 / EGX100 index tracking |
+| `egx_fibonacci_retracement` | Fib levels with golden pocket detection |
 
 ---
 
@@ -194,13 +216,34 @@ uv run mcp dev src/tradingview_mcp/server.py
 
 - **Ideas:** Implementing more advanced Risk models, integrating alternative data (News APIs) for the Sentiment Analyst, backtesting capabilities.
 
-## 📄 License & Support
+---
+
+## 💖 Support the Project
+
+This project is **free and open source**, maintained in personal time. If it saves you hours of work or improves your trading workflow, please consider sponsoring:
+
+<a href="https://github.com/sponsors/atilaahmettaner">
+  <img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github-sponsors&style=for-the-badge" alt="Sponsor atilaahmettaner" height="32"/>
+</a>
+
+**Why sponsor?**
+- 🔄 Keeps new exchanges, indicators, and tools coming
+- 🐛 Faster bug fixes and platform compatibility updates
+- 📖 Better documentation and examples
+- 🌍 Support for more global markets (BSE, TSX, ASX, etc.)
+
+### ⭐ Free Ways to Help
+- **Star the repo** — helps others discover it
+- **Share on Twitter/X or Reddit** — tag us so we can RT
+- **Open an Issue** — bugs and feature requests are always welcome
+- **Submit a PR** — all skill levels welcome
+
+---
+
+## 📄 License & Disclaimer
 This project is licensed under the **MIT License**.
 * **Report bugs**: [GitHub Issues](https://github.com/atilaahmettaner/tradingview-mcp/issues)
-* **Disclaimer**: This framework is designed for research purposes. Trading performance varies based on LLMs, market conditions, and parameters. It is *not* intended as financial, investment, or trading advice.
-
-## 🌟 Support the Framework
-If this tool improves your trading workflow, please **⭐ star the repository** to help others discover it!
+* **Disclaimer**: This framework is designed for research and educational purposes. It is *not* intended as financial, investment, or trading advice. Always do your own research.
 
 ---
 *Empowering intelligent trading decisions through multi-agent market analysis.*
