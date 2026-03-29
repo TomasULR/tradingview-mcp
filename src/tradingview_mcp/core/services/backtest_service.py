@@ -89,7 +89,7 @@ def _fetch_ohlcv(symbol: str, period: str, interval: str = "1d") -> list[dict]:
 
 # ─── Strategy Engines ─────────────────────────────────────────────────────────
 
-def _run_rsi(candles, oversold=30, overbought=70, period=14, **_):
+def _run_rsi(candles, oversold=40, overbought=60, period=14, **_):
     closes = [c["close"] for c in candles]
     rsi    = calc_rsi(closes, period)
     trades, position = [], None

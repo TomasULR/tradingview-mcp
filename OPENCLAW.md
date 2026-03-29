@@ -1,6 +1,6 @@
 # TradingView MCP × OpenClaw Integration
 
-Use [OpenClaw](https://openclaw.ai) to connect your **tradingview-mcp** AI Trading Intelligence Framework to **Telegram, WhatsApp, Discord, Slack**, and 20+ other channels — so you can ask trading questions in plain language from any device.
+Use [OpenClaw](https://openclaw.ai) to connect your **tradingview-mcp** AI Trading Intelligence Framework to **Telegram, WhatsApp, Discord**, and 20+ other channels — so you can ask trading questions in plain language from any device.
 
 ## What This Enables
 
@@ -10,9 +10,7 @@ After setup, you can send messages like:
 |---------|-------------|
 | `AAPL analiz et` | Live price + RSI/MACD/Bollinger + Reddit sentiment combined |
 | `BTC 2 yılda en iyi strateji neydi?` | Runs all 6 strategies, returns ranked leaderboard |
-| `THYAO.IS supertrend overfit mi?` | Walk-forward backtest with robustness score |
 | `Bugün piyasalar nasıl?` | S&P500, NASDAQ, BTC/ETH, EUR/USD snapshot |
-| `NVDA trade log göster 1 yıl` | Full per-trade log with entry/exit/P&L |
 
 ## Prerequisites
 
@@ -20,97 +18,76 @@ After setup, you can send messages like:
 - A running gateway (Hetzner VPS, local machine, etc.)
 - `uv` installed on the same machine as OpenClaw
 
-## Step 1 — Install tradingview-mcp-server
+## Setup (5 Minutes)
 
-On the machine running OpenClaw (your VPS or local):
+You don't need to configure `mcpServers` inside OpenClaw. Instead, we use a lightweight `trading.py` wrapper that acts as a bridge between the OpenClaw agent and the `tradingview-mcp` library.
+
+### 1. Install Dependencies
 
 ```bash
 # Install uv if you don't have it
 curl -LsSf https://astral.sh/uv/install.sh | sh
-source ~/.bashrc   # or source ~/.zshrc
+source ~/.bashrc
 
-# Install tradingview-mcp-server as a uv tool (globally accessible)
+# Install tradingview-mcp-server
 uv tool install tradingview-mcp-server
-
-# Verify
-uvx tradingview-mcp-server --help
 ```
 
-## Step 2 — Configure OpenClaw to Connect
+### 2. Configure Telegram (or other channel)
 
-Edit `~/.openclaw/openclaw.json` and add the `mcpServers` block:
+Create or edit your `~/.openclaw/openclaw.json`:
 
 ```json5
 {
-  agent: {
-    model: "anthropic/claude-sonnet-4-5",  // or claude-opus-4-6 for best results
-  },
-  mcpServers: {
-    tradingview: {
-      command: "uvx",
-      args: ["tradingview-mcp-server"],
+  channels: {
+    telegram: {
+      botToken: "YOUR_BOT_TOKEN_HERE",
     },
   },
 }
 ```
 
-> **Note:** If you're using a proxy for Yahoo Finance data, add environment variables:
-> ```json5
-> mcpServers: {
->   tradingview: {
->     command: "uvx",
->     args: ["tradingview-mcp-server"],
->     env: {
->       PROXY_HOST: "your-proxy-host",
->       PROXY_PORT: "10000",
->       PROXY_USERNAME_PREFIX: "your-prefix",
->       PROXY_PASSWORD: "your-password",
->     },
->   },
-> },
-> ```
+### 3. Install the Skill and Tool
 
-## Step 3 — Install the Skill
-
-The skill gives your OpenClaw agent context about trading capabilities and guides its behavior when users ask about markets.
+This is what tells the agent how to act as a trader.
 
 ```bash
-# Create skill directory
-mkdir -p ~/.agents/skills/tradingview-mcp
+mkdir -p ~/.agents/skills/tradingview-mcp ~/.openclaw/tools
 
-# Download the skill file
+# Download the TradingView skill (instructions)
 curl -fsSL https://raw.githubusercontent.com/atilaahmettaner/tradingview-mcp/main/openclaw/SKILL.md \
   -o ~/.agents/skills/tradingview-mcp/SKILL.md
+
+# Download the trading execution wrapper (tools)
+curl -fsSL https://raw.githubusercontent.com/atilaahmettaner/tradingview-mcp/main/openclaw/trading.py \
+  -o ~/.openclaw/tools/trading.py
+chmod +x ~/.openclaw/tools/trading.py
 ```
 
-Or clone and symlink:
+### 4. Configure Your AI Model
+
+You can use Claude, Gemini, or DeepSeek. We recommend **OpenRouter** for the best tool calling at the lowest price (effectively free using Gemini Flash).
+
 ```bash
-git clone https://github.com/atilaahmettaner/tradingview-mcp.git /opt/tradingview-mcp
-mkdir -p ~/.agents/skills
-ln -s /opt/tradingview-mcp/openclaw ~/.agents/skills/tradingview-mcp
+# Set gateway to local
+openclaw config set gateway.mode local
+
+# Ensure main agent is selected
+openclaw config set acp.defaultAgent main
+
+# Use Gemini 3 Flash via OpenRouter (or Claude directly)
+openclaw config set agents.defaults.model "openrouter/google/gemini-3-flash-preview"
+
+# Setup your OpenRouter API Key
+openclaw configure --section model
 ```
 
-## Step 4 — Restart OpenClaw Gateway
+### 5. Restart OpenClaw
 
 ```bash
-openclaw gateway restart
-
-# Verify everything is healthy
+openclaw gateway install
+systemctl --user start openclaw-gateway.service
 openclaw doctor
-```
-
-## Step 5 — Test via Telegram (or Any Channel)
-
-Send your bot:
-```
-market_snapshot
-```
-
-You should get a live overview of indices, crypto, and FX rates.
-
-Then try:
-```
-AAPL için RSI stratejisi backtesti yap, 1 yıl
 ```
 
 ## Example: Public Telegram Bot (Let Others Use It)
@@ -137,7 +114,7 @@ To let other users interact with your trading bot, open the Telegram channel in 
 
 ## Available Tools (After Integration)
 
-Your OpenClaw agent will have access to all tradingview-mcp tools:
+Your OpenClaw agent will have access to all tradingview tools via the wrapper:
 
 ### Market Data
 - `yahoo_price` — Real-time price for any stock, crypto, ETF, index
